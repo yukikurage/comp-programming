@@ -27,13 +27,17 @@ library:
 
 executables:
   comp-programming-exe:
-    main:                app/ABS/ABC086C.hs
+    #main:                app/ABC197/E.hs
+    #main:                app/Main.hs
+    main: app/GreenProblems/ABC194D
     # source-dirs:         
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - array
+    - primitive
     - vector-algorithms
     - repa
     - vector
