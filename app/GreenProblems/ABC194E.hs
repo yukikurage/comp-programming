@@ -7,6 +7,7 @@
 {-# LANGUAGE OverloadedLists   #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData        #-}
+{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE TypeApplications  #-}
 
 module Main where
@@ -37,10 +38,25 @@ import           GHC.Exts
 
 main :: IO ()
 main = do
-    n <- get @Double
-    print . VU.sum $ VU.map
-        do \x -> n / (n - x)
-        do [1 .. n - 1]
+    [n, m] <- get @[Int]
+    xs <- get @(VU.Vector Int)
+    cnt <- VUM.new @IO @Int n
+    frag <- VUM.replicate (n + 1) False
+    VUM.write frag n True
+    VU.forM_
+        do VU.take m xs
+        do VUM.modify cnt (+ 1)
+    VU.forM_ [0 .. n - 1] \i -> do
+        x <- VUM.read cnt i
+        when (x == 0) $ VUM.write frag i True
+    VU.forM_ [1 .. n - m] \i -> do
+        let x = xs ! (i - 1)
+            y = xs ! (i + m - 1)
+        VUM.modify cnt (+ 1) y
+        VUM.modify cnt (+(-1)) x
+        z <- VUM.read cnt x
+        when (z == 0) $ VUM.write frag x True
+    print . fromJust . VU.findIndex id =<< VU.freeze frag
 
 -------------
 -- Library --

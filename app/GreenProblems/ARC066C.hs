@@ -1,16 +1,17 @@
 {-# OPTIONS_GHC -O2 #-}
 
 {-# LANGUAGE BlockArguments    #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE MultiWayIf        #-}
+{-# LANGUAGE NegativeLiterals  #-}
 {-# LANGUAGE OverloadedLists   #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData        #-}
 {-# LANGUAGE TypeApplications  #-}
 
 module Main where
-
 import           Control.Monad
 import           Control.Monad.Primitive
 import           Control.Monad.ST
@@ -19,6 +20,7 @@ import qualified Data.Array.Repa               as R
 import qualified Data.Array.Unboxed            as AU
 import           Data.Bits
 import qualified Data.ByteString.Char8         as BS8
+import           Data.Char
 import           Data.List
 import           Data.Maybe
 import           Data.STRef
@@ -35,12 +37,27 @@ import           GHC.Exts
 -- Main --
 ----------
 
+m = 10 ^ 9 + 7
+
 main :: IO ()
 main = do
-    n <- get @Double
-    print . VU.sum $ VU.map
-        do \x -> n / (n - x)
-        do [1 .. n - 1]
+    n <- get @Int
+    xs <- get @(VU.Vector Int)
+    print $ solve n xs
+    return ()
+
+solve :: Int -> VU.Vector Int -> Int
+solve n xs = if frag then modExp 2  (n `div` 2) m else 0 where
+    frag = VU.all f . VU.zip [0 .. n] $ count n xs
+    f (i, x)
+        | even n = if odd i then x == 2 else x == 0
+        | odd n = if i == 0 then x == 1 else if even i then x == 2 else x == 0
+
+count :: Int -> VU.Vector Int -> VU.Vector Int
+count maxelem xs = VU.create do
+    v <- VUM.replicate (maxelem + 1) 0
+    VU.forM_ xs do \x -> when (0 <= x && x <= maxelem) do VUM.modify v (+ 1) x
+    return v
 
 -------------
 -- Library --
@@ -75,3 +92,8 @@ instance (Readable a, VU.Unbox a) => Readable (VU.Vector a) where
 
 instance (Readable a) => Readable [a] where
     fromBS = map fromBS . BS8.split ' '
+
+modExp a b m = f c b where
+    c = a `mod` m
+    f c 0 = 1
+    f c b = (f c (b - 1) * c) `mod` m

@@ -29,7 +29,7 @@ executables:
   comp-programming-exe:
     #main:                app/ABC197/E.hs
     #main:                app/Main.hs
-    main: app/GreenProblems/ABC194D
+    main: app/GreenProblems/ARC066C.hs
     # source-dirs:         
     ghc-options:
     - -threaded

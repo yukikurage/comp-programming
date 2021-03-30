@@ -4,13 +4,13 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE MultiWayIf        #-}
+{-# LANGUAGE NegativeLiterals  #-}
 {-# LANGUAGE OverloadedLists   #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData        #-}
 {-# LANGUAGE TypeApplications  #-}
 
 module Main where
-
 import           Control.Monad
 import           Control.Monad.Primitive
 import           Control.Monad.ST
@@ -19,6 +19,7 @@ import qualified Data.Array.Repa               as R
 import qualified Data.Array.Unboxed            as AU
 import           Data.Bits
 import qualified Data.ByteString.Char8         as BS8
+import           Data.Char
 import           Data.List
 import           Data.Maybe
 import           Data.STRef
@@ -36,7 +37,8 @@ import           GHC.Exts
 ----------
 
 main :: IO ()
-main = return ()
+main = do
+    return ()
 
 -------------
 -- Library --
@@ -52,9 +54,8 @@ getLn :: (Readable a, VU.Unbox a) => Int -> IO (VU.Vector a)
 getLn n = VU.replicateM n get
 
 instance Readable Int where
-    fromBS bs = fst $ fromMaybe
-        do error "Error : fromBS @Int"
-        do BS8.readInt bs
+    fromBS = fst . fromMaybe do error "Error : fromBS @Int"
+        . BS8.readInt
 
 instance Readable Double where
     fromBS = read . BS8.unpack

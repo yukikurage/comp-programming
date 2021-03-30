@@ -10,7 +10,6 @@
 {-# LANGUAGE TypeApplications  #-}
 
 module Main where
-
 import           Control.Monad
 import           Control.Monad.Primitive
 import           Control.Monad.ST
@@ -19,6 +18,7 @@ import qualified Data.Array.Repa               as R
 import qualified Data.Array.Unboxed            as AU
 import           Data.Bits
 import qualified Data.ByteString.Char8         as BS8
+import           Data.Char
 import           Data.List
 import           Data.Maybe
 import           Data.STRef
@@ -37,10 +37,23 @@ import           GHC.Exts
 
 main :: IO ()
 main = do
-    n <- get @Double
-    print . VU.sum $ VU.map
-        do \x -> n / (n - x)
-        do [1 .. n - 1]
+    [n, m] <- get @[Int]
+    xs <- getLn @(Int, Int) m
+    print . count $ solve n xs
+
+solve n xs = runST do
+    res <- VUM.replicate n False
+    cnt <- VUM.replicate @_ @Int n 1
+    VUM.write res 0 True
+    VU.forM_ xs \(x, y) -> do
+        a <- VUM.read res $ x - 1
+        when a $ VUM.write res (y - 1) True
+        VUM.modify cnt (+ (-1)) $ x - 1
+        VUM.modify cnt (+ 1) $ y - 1
+        b <- VUM.read cnt $ x - 1
+        when (b == 0) $ VUM.write res (x - 1) False
+    VU.freeze res
+count xs = VU.length $ VU.filter id xs
 
 -------------
 -- Library --

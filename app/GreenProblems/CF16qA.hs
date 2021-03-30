@@ -10,7 +10,6 @@
 {-# LANGUAGE TypeApplications  #-}
 
 module Main where
-
 import           Control.Monad
 import           Control.Monad.Primitive
 import           Control.Monad.ST
@@ -19,6 +18,7 @@ import qualified Data.Array.Repa               as R
 import qualified Data.Array.Unboxed            as AU
 import           Data.Bits
 import qualified Data.ByteString.Char8         as BS8
+import           Data.Char
 import           Data.List
 import           Data.Maybe
 import           Data.STRef
@@ -37,10 +37,23 @@ import           GHC.Exts
 
 main :: IO ()
 main = do
-    n <- get @Double
-    print . VU.sum $ VU.map
-        do \x -> n / (n - x)
-        do [1 .. n - 1]
+    s <- VU.fromList . map (alf' AU.!) <$> getLine
+    k <- get @Int
+    putStrLn $ map
+        do BS8.index alf
+        do solve s k
+
+solve s k
+    | VU.length s == 1 = [x]
+    | h + k >= 26 && h >= 1 = 0 : solve t do k + h - 26
+    | otherwise = h : solve t k where
+        x = (h + k) `mod` 26
+        h = VU.head s
+        t = VU.tail s
+
+alf = "abcdefghijklmnopqrstuvwxyz" :: BS8.ByteString
+alf' :: AU.Array Char Int
+alf' = AU.listArray ('a', 'z') [0 .. 25] :: AU.Array Char Int
 
 -------------
 -- Library --

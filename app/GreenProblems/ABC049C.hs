@@ -4,13 +4,13 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE MultiWayIf        #-}
+{-# LANGUAGE NegativeLiterals  #-}
 {-# LANGUAGE OverloadedLists   #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData        #-}
 {-# LANGUAGE TypeApplications  #-}
 
 module Main where
-
 import           Control.Monad
 import           Control.Monad.Primitive
 import           Control.Monad.ST
@@ -19,6 +19,7 @@ import qualified Data.Array.Repa               as R
 import qualified Data.Array.Unboxed            as AU
 import           Data.Bits
 import qualified Data.ByteString.Char8         as BS8
+import           Data.Char
 import           Data.List
 import           Data.Maybe
 import           Data.STRef
@@ -37,10 +38,22 @@ import           GHC.Exts
 
 main :: IO ()
 main = do
-    n <- get @Double
-    print . VU.sum $ VU.map
-        do \x -> n / (n - x)
-        do [1 .. n - 1]
+    s <- BS8.getLine
+    putStrLn $ if solve s then "YES" else "NO"
+    return ()
+
+solve s = dp ! l where
+    l = BS8.length s
+    dp = V.map f [0 .. l]
+    f 0 = True
+    f n = any g strs where
+        g str = m >= 0 && dp ! m && bsp m ln s == str where
+            ln = BS8.length str
+            m = n - ln
+
+strs = ["dream", "dreamer", "erase", "eraser"] :: [BS8.ByteString]
+
+bsp i n = BS8.take n . BS8.drop i
 
 -------------
 -- Library --

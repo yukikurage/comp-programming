@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -O2 #-}
 
 {-# LANGUAGE BlockArguments    #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE MultiWayIf        #-}
@@ -19,6 +20,7 @@ import qualified Data.Array.Repa               as R
 import qualified Data.Array.Unboxed            as AU
 import           Data.Bits
 import qualified Data.ByteString.Char8         as BS8
+import           Data.Char
 import           Data.List
 import           Data.Maybe
 import           Data.STRef
@@ -37,10 +39,26 @@ import           GHC.Exts
 
 main :: IO ()
 main = do
-    n <- get @Double
-    print . VU.sum $ VU.map
-        do \x -> n / (n - x)
-        do [1 .. n - 1]
+    k <- get @Int
+    s <- VU.map digitToInt . VU.fromList . BS8.unpack . BS8.init <$> BS8.getLine
+    t <- VU.map digitToInt . VU.fromList . BS8.unpack . BS8.init <$> BS8.getLine
+    let xs = VU.map
+            do \i -> k - count i s - count i t
+            do [1 .. 9]
+    print . sum $ [pos xs i j k | i <- [1 .. 9], j <- [1 .. 9], score (VU.cons i s) > score (VU.cons j t)]
+    return ()
+
+score :: VU.Vector Int -> Int
+score xs = VU.sum $ VU.map
+    do \i -> i * 10 ^ count i xs
+    do [1 .. 9]
+
+pos :: VU.Vector Int -> Int -> Int -> Int -> Double
+pos xs x y k
+    | x == y = fromIntegral ((xs ! (x - 1)) * ((xs ! (y - 1)) - 1)) / fromIntegral ((9 * k - 8) * (9 * k - 9))
+    | otherwise = fromIntegral ((xs ! (x - 1)) * (xs ! (y - 1))) / fromIntegral ((9 * k - 8) * (9 * k - 9))
+
+count x = VU.length . VU.filter (== x)
 
 -------------
 -- Library --
