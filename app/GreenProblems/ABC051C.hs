@@ -43,7 +43,19 @@ import           GHC.TypeNats
 
 main :: IO ()
 main = do
-    return ()
+    [sx, sy, tx, ty] <- get @[Int]
+    let x = tx - sx
+        y = ty - sy
+    putStr "D"
+    replicateM_ (x + 1) $ putStr "R"
+    replicateM_ (y + 1) $ putStr "U"
+    replicateM_ (x + 1) $ putStr "L"
+    replicateM_ y $ putStr "D"
+    replicateM_ x $ putStr "R"
+    replicateM_ (y + 1) $ putStr "U"
+    replicateM_ (x + 1) $ putStr "L"
+    replicateM_ (y + 1) $ putStr "D"
+    putStrLn "R"
 
 -------------
 -- Library --

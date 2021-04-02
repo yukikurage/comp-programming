@@ -43,6 +43,15 @@ import           GHC.TypeNats
 
 main :: IO ()
 main = do
+    [n, a, b] <- get @[Int]
+    xs <- get @(VU.Vector Int)
+    print . VU.sum $ VU.zipWith
+        do \x y -> min
+            do (y - x) * a
+            do b
+        do VU.init xs
+        do VU.tail xs
+
     return ()
 
 -------------

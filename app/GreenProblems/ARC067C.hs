@@ -41,9 +41,34 @@ import           GHC.TypeNats
 -- Main --
 ----------
 
+primes :: VU.Vector Int
+primes = runST $ do
+    v <- VUM.replicate 1001 True
+    VUM.write v 0 False
+    VUM.write v 1 False
+    VU.forM_ [2 .. 1000] \i -> do
+        x <- VUM.read v i
+        when x $ VU.forM_ [2 * i, 3 * i .. 1000] \j -> VUM.write v j False
+    w <- VU.freeze v
+    return $ VU.filter (w !) [2 .. 1000]
+m = 10 ^ 9 + 7
+
+maxdiv n p = VU.sum $ VU.map
+    do \x -> n `div` (p ^ x)
+    do [1 .. pow] where
+        pow = fromJust $ VU.find
+            do \x -> p ^ x > n
+            do [1 .. 10 :: Int]
+
 main :: IO ()
 main = do
+    n <- get @Int
+    print . VU.foldr1' modProd $ VU.map
+        do \p -> 1 + maxdiv n p
+        do primes
     return ()
+
+modProd x y = (x * y) `mod` m
 
 -------------
 -- Library --
